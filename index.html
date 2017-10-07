@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>FB Comments - Proto</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://opensource.keycdn.com/fontawesome/4.7.0/font-awesome.min.css" integrity="sha384-dNpIIXE8U05kAbPhy3G1cz+yZmTzA6CY8Vg/u2L9xRnHjJiAK76m2BIEaSEV+/aU"
+        crossorigin="anonymous">
+
+    <style>
+        a {
+            text-decoration: none !important;
+            font-size: 11px;
+            color: #007bff !important;
+            cursor: pointer;
+        }
+
+        .card-title {
+            margin-bottom: .25rem;
+        }
+
+        a.default {
+            color: grey !important;
+        }
+
+        a:hover {
+            color: #007bff !important;
+        }
+
+        .form-group {
+            margin-bottom: 0 !important;
+        }
+
+        .card-body {
+            padding: 5px !important;
+        }
+
+        textarea {
+            resize: none !important;
+            border-left: 3px solid #007bff !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h5 class="display-4">
+                    FB Comments Prototype
+                </h5>
+                <hr />
+            </div>
+            <div class="col-md-6 mt-2">
+                <div class="card">
+                    <img src="fbimage.jpeg" class="img-responsive" alt="FB Image">
+                </div>
+            </div>
+            <div class="col-md-6 mt-2">
+                <div class="card p-2" data-bind="template: { name: 'comment-template', foreach: comments }, visible: comments().length > 0">
+                </div>
+                <div class="card p-3">
+                    <h6 class="card-title">
+                        Add Comment
+                    </h6>
+                    <div class="form-group">
+                        <textarea data-bind="value: replyComment" placeholder="Enter comments..." class="form-control"></textarea>
+                        <a class="pr-3" data-bind="click: SubmitReply">
+                            <i class="fa fa-share"></i> Add
+                        </a>
+                        <a class="pr-3" data-bind="click: CancelReply">
+                            <i class="fa fa-times-circle-o"></i> Cancel
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- KO: Template Binding -->
+        <script type="text/html" id="comment-template">
+            <div class="card-body">
+                    <h6 class="card-title" data-bind="text: comment"></h6>
+                    <div class="card-text">
+                        <div class="form-group" data-bind="visible: isReplyMode">
+                            <textarea maxlength="256" data-bind="value: replyComment" placeholder="Enter comments..." class="form-control"></textarea>
+                        </div>
+                        <a class="pr-3" data-bind="click: Reply, visible: !isReplyMode()">
+                            <i class="fa fa-reply"></i> Reply
+                        </a>
+                        <a class="pr-3" data-bind="click: SubmitReply, visible: isReplyMode()">
+                            <i class="fa fa-share"></i> Add
+                        </a>
+                        <a class="pr-3" data-bind="click: CancelReply, visible: isReplyMode()">
+                            <i class="fa fa-times-circle-o"></i> Cancel
+                        </a>
+                        <a class="pr-3" data-bind="click: Like, css: { 'default': !isLiked() }">
+                            <i class="fa fa-thumbs-up"></i> Like
+                            <span data-bind="text: '(' + likes() + ')'"></span>
+                        </a>
+                        <a class="pr-3" data-bind="click: showHideReplies, visible: replies().length > 0">
+                            <i class="fa fa-eye"></i>
+                            <span data-bind="text: 'Show Replies', visible: !showReplies()"></span>
+                            <span data-bind="text: 'Hide Replies', visible: showReplies"></span>
+                            <span data-bind="text: '(' + replies().length + ')'"></span>
+                        </a>
+                    </div>
+                    <div data-bind="template: { name: 'comment-template', foreach: replies }, visible: showReplies" class="card-body ml-3">                       
+                    </div>
+                    <hr  data-bind="visible: isParent" />
+                </div>
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+        <script>
+
+            /// Comments view model
+            function CommentViewModel(data) {
+
+                /// this
+                var selfComm = this;
+
+                /// props
+                selfComm.comment = ko.observable(data.comment);
+                selfComm.date = ko.observable(data.date);
+                selfComm.likes = ko.observable(data.likes);
+                selfComm.isLiked = ko.observable(data.isLiked);
+                selfComm.replies = ko.observableArray([]);
+                selfComm.isParent = ko.observable(data.isParent);
+
+                /// manipulated props
+                selfComm.isReplyMode = ko.observable(false);
+                selfComm.showReplies = ko.observable(false);
+                selfComm.replyComment = ko.observable("");
+
+                /// add the replies
+                if (data.replies !== undefined && data.replies !== null) {
+                    ko.utils.arrayForEach(data.replies, function (item) {
+
+                        /// push into main array
+                        selfComm.replies.push(new CommentViewModel(item));
+                    });
+                }
+
+                /// Show/Hide Replies Function
+                selfComm.showHideReplies = function () {
+
+                    /// set the Show/Hide Replies
+                    selfComm.showReplies(!selfComm.showReplies());
+                };
+
+                /// Like Function
+                selfComm.Like = function () {
+
+                    /// set the like
+                    selfComm.isLiked(!selfComm.isLiked());
+
+                    /// check for # of likes
+                    if (selfComm.likes() === 0 && !selfComm.isLiked())
+                        selfComm.likes(0);
+                    else {
+                        selfComm.likes(selfComm.isLiked() ? selfComm.likes() + 1 : selfComm.likes() - 1);
+                    }
+                };
+
+                /// Reply Function
+                selfComm.Reply = function () {
+
+                    /// set the reply mode
+                    selfComm.isReplyMode(!selfComm.isReplyMode());
+                };
+
+                /// Submit Reply Function
+                selfComm.SubmitReply = function () {
+
+                    /// check the value before submit
+                    /// Add the comment to "replies" array
+                    /// reset the replyComment
+                    /// reset the reply mode
+                    if (selfComm.replyComment() === ""
+                        || null === selfComm.replyComment()
+                        || undefined === selfComm.replyComment()
+                        || selfComm.replyComment().length === 0)
+                        return;
+
+                    /// push into main array
+                    selfComm.replies.push(new CommentViewModel({
+                        comment: selfComm.replyComment(),
+                        date: new Date().toLocaleString(),
+                        likes: 0,
+                        isLiked: false,
+                        replies: []
+                    }));
+
+                    /// set the reply mode
+                    selfComm.isReplyMode(false);
+                    selfComm.replyComment("");
+                };
+
+                /// Cancel Reply Function
+                selfComm.CancelReply = function () {
+
+                    /// set the reply mode
+                    selfComm.isReplyMode(false);
+                    selfComm.replyComment("");
+                };
+            }
+
+            /// KO function
+            function PageViewModel() {
+
+                /// set the THIS
+                var self = this;
+                self.comments = ko.observableArray([]);
+
+                /// manipulated props
+                self.replyComment = ko.observable("");
+
+                /// Submit Reply Function
+                self.SubmitReply = function () {
+
+                    /// check the value before submit
+                    /// Add the comment to "replies" array
+                    /// reset the replyComment
+                    /// reset the reply mode
+                    if (self.replyComment() === ""
+                        || null === self.replyComment()
+                        || self === self.replyComment()
+                        || self.replyComment().length === 0)
+                        return;
+
+                    /// push into main array
+                    self.comments.push(new CommentViewModel({
+                        comment: self.replyComment(),
+                        date: new Date().toLocaleString(),
+                        likes: 0,
+                        isLiked: false,
+                        replies: []
+                    }));
+
+                    /// set the reply mode
+                    self.replyComment("");
+                };
+
+                /// Cancel Reply Function
+                self.CancelReply = function () {
+
+                    /// set the reply mode
+                    self.replyComment("");
+                };
+
+                /// get the records from the JSON sever
+                self.getComments = function () {
+
+                    /// fetch API - Get comments
+                    fetch("comments.json")
+                        .then((res) => res.json())
+                        .then((data) => {
+
+                            /// comments
+                            ko.utils.arrayForEach(data, function (item) {
+
+                                /// push into main array
+                                item.isParent = true;
+                                self.comments.push(new CommentViewModel(item));
+                            });
+                        })
+                        .catch((err) => console.log(err))
+                };
+
+                /// call the base
+                self.getComments();
+            }
+
+            /// KO - Apply Bindings
+            ko.applyBindings(new PageViewModel());
+
+        </script>
+</body>
+
+</html>

@@ -1,0 +1,48 @@
+[
+    {
+        "comment": "Sublime Text is awesome. Cool features",
+        "date": "07/25/2017",
+        "likes": 6,
+        "isLiked": true,
+        "replies": [
+            {
+                "comment": "Very true",
+                "date": "07/25/2017",
+                "likes": 4,
+                "isLiked": false
+            },
+            {
+                "comment": "Luv it",
+                "date": "05/08/2017",
+                "likes": 2,
+                "isLiked": true
+            }
+        ]
+    },
+    {
+        "comment": "It has some drawbacks on use. Like debugging etc...",
+        "date": "07/25/2017",
+        "likes": 2,
+        "isLiked": false,
+        "replies": [
+            {
+                "comment": "Integrated terminal",
+                "date": "01/07/2017",
+                "likes": 1,
+                "isLiked": false
+            },
+            {
+                "comment": "poor package manager support",
+                "date": "02/21/2017",
+                "likes": 2,
+                "isLiked": false
+            },
+            {
+                "comment": "Good, but has some poor features",
+                "date": "03/08/2017",
+                "likes": 1,
+                "isLiked": true
+            }
+        ]
+    }
+]

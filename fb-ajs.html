@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>FB Comments - Proto</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://opensource.keycdn.com/fontawesome/4.7.0/font-awesome.min.css" integrity="sha384-dNpIIXE8U05kAbPhy3G1cz+yZmTzA6CY8Vg/u2L9xRnHjJiAK76m2BIEaSEV+/aU"
+        crossorigin="anonymous">
+
+    <style>
+        a {
+            text-decoration: none !important;
+            font-size: 11px;
+            color: #007bff !important;
+            cursor: pointer;
+        }
+
+        .card-title {
+            margin-bottom: .25rem;
+        }
+
+        a.default {
+            color: grey !important;
+        }
+
+        a:hover {
+            color: #007bff !important;
+        }
+
+        .form-group {
+            margin-bottom: 0 !important;
+        }
+
+        .card-body {
+            padding: 5px !important;
+        }
+
+        textarea {
+            resize: none !important;
+            border-left: 3px solid #007bff !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h5 class="display-4">
+                    FB Comments Prototype - Angular JS
+                </h5>
+                <hr />
+            </div>
+            <div class="col-md-12 text-right">
+                <a href="fb-ko.html" class="btn btn-warning text-white">KO</a>
+                <a href="fb-ajs.html" class="btn btn-primary text-white">AJS</a>
+            </div>
+            <div class="col-md-6 mt-2">
+                <div class="card">
+                    <img src="fbimage.jpeg" class="img-responsive" alt="FB Image">
+                </div>
+            </div>
+            <div class="col-md-6 mt-2" ng-controller="fbController">
+                <div class="card p-2">
+                    <div ng-repeat="comm in comments" ng-include="'comment-template'">
+                    </div>
+                </div>
+                <div class="card p-3">
+                    <h6 class="card-title">
+                        Add Comment
+                    </h6>
+                    <div class="form-group">
+                        <textarea id="addComment" ng-model="replyComment" placeholder="Enter comments..." class="form-control"></textarea>
+                        <a class="pr-3" ng-click="SubmitReply(null)">
+                            <i class="fa fa-share"></i> Add
+                        </a>
+                        <a class="pr-3" ng-click="CancelReply(null)">
+                            <i class="fa fa-times-circle-o"></i> Cancel
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- AJS: Template Binding -->
+            <script type="text/ng-template" id="comment-template">
+                <div class="card-body">
+                    <h6 class="card-title">{{ comm.comment }}</h6>
+                    <div class="card-text">
+                        <div class="form-group" ng-show="comm.isReplyMode">
+                            <textarea maxlength="256" ng-model="comm.replyComment" placeholder="Enter comments..." class="form-control"></textarea>
+                        </div>
+                        <a class="pr-3" ng-click="Reply(comm)" ng-show="!comm.isReplyMode">
+                            <i class="fa fa-reply"></i> Reply
+                        </a>
+                        <a class="pr-3" ng-click="SubmitReply(comm)" ng-show="comm.isReplyMode">
+                            <i class="fa fa-share"></i> Add
+                        </a>
+                        <a class="pr-3" ng-click="CancelReply(comm)" ng-show="comm.isReplyMode">
+                            <i class="fa fa-times-circle-o"></i> Cancel
+                        </a>
+                        <a class="pr-3" ng-click="Like(comm)" ng-class="[{ 'default': !comm.isLiked }]">
+                            <i class="fa fa-thumbs-up"></i> Like
+                            <span>({{comm.likes}})</span>
+                        </a>
+                        <a class="pr-3" ng-click="showHideReplies(comm)" ng-show="comm.replies.length > 0">
+                            <i class="fa fa-eye"></i>
+                            <span ng-show="!comm.showReplies">Show Replies</span>
+                            <span ng-show="comm.showReplies">Hide Replies</span>
+                            <span>({{comm.replies.length}})</span>
+                        </a>
+                    </div>
+                    <div ng-show="comm.showReplies">     
+                        <div ng-repeat="comm in comm.replies" ng-include="'comment-template'" class="ml-3">                       
+                        </div>                    
+                    </div>                                      
+                    <hr ng-show="comm.isParent"/>
+                </div>
+            </script>
+            <script src="https://opensource.keycdn.com/angularjs/1.6.6/angular.min.js"></script>
+            <script>
+
+                /// create the app
+                var myApp = angular.module("myApp", []);
+
+                /// create the controller
+                myApp.controller("fbController", ["$scope", function ($scope) {
+
+                    /// Initializers...
+                    $scope.comments = [];
+                    $scope.replyComment = "";
+
+                    /// Show/Hide Replies Function
+                    $scope.showHideReplies = function (item) {
+
+                        /// set the reply mode
+                        if (item !== null && item !== undefined) {
+                            item.showReplies = !item.showReplies;
+                        }
+                        console.log(item.showReplies)
+                    };
+
+                    /// Like Function
+                    $scope.Like = function (item) {
+
+                        /// set the reply mode
+                        if (item !== null && item !== undefined) {
+                            item.isLiked = !item.isLiked;
+
+                            /// check for # of likes
+                            if (item.likes === 0 && !item.isLiked)
+                                item.likes = 0;
+                            else {
+                                item.likes = item.isLiked ? item.likes + 1 : item.likes - 1;
+                            }
+                        }
+                    };
+
+                    /// Reply Function
+                    $scope.Reply = function (item) {
+
+                        /// set the reply mode
+                        if (item !== null && item !== undefined)
+                            item.isReplyMode = !item.isReplyMode;
+                    };
+
+                    /// Cancel Reply Function
+                    $scope.CancelReply = function (item) {
+
+                        if (item === null) {
+
+                            /// set the reply Comment
+                            $scope.replyComment = "";
+                        }
+                        else {
+                            /// set the reply mode
+                            item.isReplyMode = false;
+                            item.replyComment = "";
+                        }
+                    };
+
+                    /// Submit Reply Function
+                    $scope.SubmitReply = function (item) {
+
+                        /// check the value before submit
+                        /// Add the comment to "replies" array
+                        /// reset the replyComment                       
+
+                        /// check the item
+                        if (item === null) {
+
+                            /// reset the reply mode
+                            if ($scope.replyComment === ""
+                                || null === $scope.replyComment
+                                || undefined === $scope.replyComment
+                                || $scope.replyComment.length === 0)
+                                return;
+
+                            /// push into main array
+                            $scope.comments.push({
+                                comment: $scope.replyComment,
+                                date: new Date().toLocaleString(),
+                                likes: 0,
+                                isLiked: false,
+                                replies: [],
+                                isParent: false,
+                                isReplyMode: false,
+                                showReplies: false,
+                                replyComment: ""
+                            });
+
+                            /// set the reply Comment
+                            $scope.replyComment = "";
+                        }
+                        else {
+
+                            /// reset the reply mode
+                            if (item.replyComment === ""
+                                || null === item.replyComment
+                                || undefined === item.replyComment
+                                || item.replyComment.length === 0)
+                                return;
+
+                            item.replies.push({
+                                comment: item.replyComment,
+                                date: new Date().toLocaleString(),
+                                likes: 0,
+                                isLiked: false,
+                                replies: [],
+                                isParent: false,
+                                isReplyMode: false,
+                                showReplies: false,
+                                replyComment: ""
+                            });
+
+                            /// set the reply Comment
+                            item.replyComment = "";
+                            item.isReplyMode = false;
+                        }
+                    };
+
+                    /// get the records from the JSON sever
+                    $scope.getComments = function () {
+
+                        /// fetch API - Get comments
+                        fetch("comments.json")
+                            .then((res) => res.json())
+                            .then((data) => {
+
+                                /// comments
+                                angular.forEach(data, function (item) {
+
+                                    /// push into main array
+                                    $scope.comments.push({
+                                        comment: item.comment,
+                                        date: item.date,
+                                        likes: item.likes,
+                                        isLiked: item.isLiked,
+                                        replies: (item.replies !== undefined && item.replies !== null) ?
+                                            $scope.constructReplies(item.replies) : [],
+                                        isParent: true,
+                                        isReplyMode: false,
+                                        showReplies: false,
+                                        replyComment: ""
+                                    });
+                                });
+                            })
+                            .catch((err) => console.log(err));
+
+                        /// timeout
+                        setTimeout(function () {
+                            $scope.$apply();
+                        }, 1000);
+                    };
+
+                    /// construct replies
+                    $scope.constructReplies = function (replies) {
+
+                        /// replies
+                        let repliesTemp = [];
+
+                        /// loop & push 
+                        angular.forEach(replies, function (item) {
+
+                            repliesTemp.push({
+                                comment: item.comment,
+                                date: item.date,
+                                likes: item.likes,
+                                isLiked: item.isLiked,
+                                replies: (item.replies !== undefined && item.replies !== null) ?
+                                    $scope.constructReplies(item.replies) : [],
+                                isParent: false,
+                                isReplyMode: false,
+                                showReplies: false,
+                                replyComment: ""
+                            });
+                        });
+
+                        /// return
+                        return repliesTemp;
+                    };
+
+                    /// call the base
+                    $scope.getComments();
+                }]);
+
+            </script>
+</body>
+
+</html>
